@@ -15,6 +15,8 @@ const CreateUser = () => {
     if (!username || !password) alert("Please enter username and password");
     e.preventDefault();
     try {
+      username=username.charAt(0).toUpperCase() + username.slice(1).toLowerCase();
+      console.log(username)
       const res = await axios.post(
         `${api}/users/create`,
         { username, password },

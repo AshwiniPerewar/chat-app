@@ -10,11 +10,11 @@ const generateToken = (id) => {
 const signupUser = async (req, res) => {
   try{
   const { username,password } = req.body;
-  const user = await User.findOne({ username});
+  const user = await User.findOne({ username :{$regex:username,$options:"i"}});
 if(user)
-res.status(401).json({message:"User Already Exists"});
-  const newUser=new User({username,password:hashedPassword });
-  const response=await newUser.save();
+return res.status(401).json({message:"User Already Exists"});
+  const newUser=new User({username,password:await bcrypt.hash(password,10) });
+  await newUser.save();
 res.status(201).json({message:"User Created Successfully"});
   }
 catch(err)
@@ -28,15 +28,19 @@ catch(err)
 const loginUser = async (req, res) => {
   const { username, password } = req.body;
   try{
-  const user = await User.findOne({ username });
-  if (user && user.password==password) {
+  const user = await User.findOne({ username : { $regex: username, $options: 'i' }});
+  if (user) {
+    const match=await bcrypt.compare(password,user.password)
+    if(match)
+    {
     let userData={_id:user._id,
-      username:user.username,
-    isAdmin:user.isAdmin}
-    res.status(200).json({message:"Logged In successfully",token: generateToken(user._id),userData
+      username:user.username,}
+    return res.status(200).json({message:"Logged In successfully",token: generateToken(user._id),userData
     });
+  }
+  return res.status(401).json({ message: 'Invalid username or password' });
   } else {
-    res.status(401).json({ message: 'Invalid username or password' });
+    return res.status(401).json({ message: 'User Not Found' });
   }
 }
 catch(err)
@@ -47,18 +51,17 @@ catch(err)
 
 // creating new user
 const createUser = async (req, res) => {
-  const { username, password, isAdmin } = req.body;
+  const { username, password } = req.body;
   try{
   const userExists = await User.findOne({ username });
 
   if (userExists) {
-    res.status(400).json({ message: 'User already exists' });
+    return res.status(400).json({ message: 'User already exists' });
   } else {
     
     const user = await User.create({
       username,
       password,
-      isAdmin,
     });
 
     if (user) {
@@ -66,7 +69,7 @@ const createUser = async (req, res) => {
        message:"User Created Successfully"
       });
     } else {
-      res.status(400).json({ message: 'Invalid user data' });
+      return res.status(400).json({ message: 'Invalid user data' });
     }
   }
 }
@@ -86,11 +89,11 @@ const editUser = async (req, res) => {
     user.isAdmin = req.body.isAdmin !== undefined ? req.body.isAdmin : user.isAdmin;
 
     const updatedUser = await user.save();
-    res.status(200).json({
+    return res.status(200).json({
      message:"User Details Updated Successfully"
     });
   } else {
-    res.status(404).json({ message: 'User not found' });
+   return res.status(404).json({ message: 'User not found' });
   }
 }
 catch(err)
@@ -102,8 +105,9 @@ catch(err)
 // fetching all users
 const getUsers = async (req, res) => {
   try{
-  const users = await User.find({});
-  res.status(200).json(users);
+    const searchQuery = req.query.q;
+  const users = await User.find({username:{$regex :searchQuery, $options: 'i'}}).select("-password");
+  res.status(200).json({message :"Users fetched successfully",users});
 }
 catch(err)
 {
@@ -116,26 +120,12 @@ catch(err)
 const getUser = async (req, res) => {
   try{
   const user = await User.findById(req.params.userId);
-  res.status(200).json(user);
+  res.status(200).json({message:"User Data fetched successully",user});
 }
 catch(err)
 {
   res.status(400).json(err)
 }
-};
-
-// Search users
-const searchUser=async (req, res) => {
-  try {
-      const searchQuery = req.query.q;
-      const users = await User.find({
-          username: { $regex: searchQuery, $options: 'i' }
-      }).select('-password');
-
-      res.status(200).json(users);
-  } catch (err) {
-      res.status(500).send('Server error');
-  }
 };
 
 // delete user by userId 
@@ -149,4 +139,4 @@ const deleteUser=async(req,res)=>{
   }
 }
 
-module.exports = {signupUser, loginUser, createUser, editUser, searchUser,getUser, getUsers,deleteUser };
+module.exports = {signupUser, loginUser, createUser, editUser, getUser, getUsers,deleteUser };

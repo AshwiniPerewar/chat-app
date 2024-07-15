@@ -11,9 +11,8 @@ const AuthProvider = ({ children }) => {
   const login = (token,user) => {
     localStorage.setItem("token", token);
     setIsAuth(true);
-    console.log(user)
-    if(user)
-    setUserData(user)
+    setUserData(user);
+    console.log(userData,user)
   };
 
   const logout = () => {

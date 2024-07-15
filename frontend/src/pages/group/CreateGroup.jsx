@@ -3,14 +3,17 @@ import axios from "axios";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../../utils/api";
 import { headers } from "../../utils/headers";
+import { AuthContext } from "../../context/AuthContext";
+import { convert } from "../../utils/convert";
 
 const CreateGroup = () => {
   const [users, setUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [added, setAdded] = useState([]);
-  const [members, setMembers] = useState([]);
+  const [newMembers, setNewMembers] = useState([]);
   const [groupName, setGroupName] = useState("");
   const navigate = useNavigate();
+  const {userData}=useContext(AuthContext);
   // fetching all users list
   useEffect(() => {
     const fetchUsers = async () => {
@@ -19,7 +22,8 @@ const CreateGroup = () => {
           `${api}/users/search?q=${searchQuery}`,
           headers
         );
-        setUsers(res.data);
+        console.log(res.data,userData._id)
+        setUsers(res.data.users.filter((el)=>el._id!=userData._id));
       } catch (err) {
         console.log(err.response.data.message);
       }
@@ -28,50 +32,54 @@ const CreateGroup = () => {
   }, [searchQuery]);
 
   const handleAdded = async (user) => {
-    if (members.includes(user._id)) alert("User Already Added");
+    if (newMembers.includes(user._id)) alert("User Already Added");
     else {
       setAdded([...added, user]);
-      setMembers([...members, user._id]);
+      setNewMembers([...newMembers,user._id])
       setSearchQuery("");
     }
   };
 
   const handleRemove = (user) => {
     setAdded(added.filter((el) => el._id != user._id));
-    setMembers(members.filter((el) => el != user._id));
+    setNewMembers(newMembers.filter((el) => el != user._id));
   };
 
   const createGroup = async () => {
-    console.log(groupName);
-    if (!groupName) alert("Please enter Group name");
+    try{
+    if(newMembers.length==0)
+    alert("Atleast one contact must be selected")
+  else if (!groupName) alert("Please enter Group name");
     else {
       const res = await axios.post(
         `${api}/groups`,
-        { groupName, members },
+        { groupName:convert(groupName)
+          ,admin:userData._id, members:newMembers },
         headers
       );
+      console.log(res)
       if (res.data) alert("Group Created successfully");
       navigate("/groups");
+    }}
+    catch(err)
+    {
+      console.log(err)
     }
   };
 
   return (
-    <div className="container col-sm-4 mt-5 shadow-lg p-4">
-      <h2 className="my-4 text-center">Create Group</h2>
+    <div className="container col-sm-4 mt-5 shadow-lg" style={{"height":"470px"}}>
+      <h2 className=" text-center">Create Group</h2>
       <div className="d-flex justify-content-between ">
         <input
-          className="w-100"
+          className="w-100 form-control"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="search username"
         />
-        <div>
-        {/* <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-  <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-</svg> */}
-</div>
+       
       </div>
-      <div className="d-flex">
+      <div className="d-flex h-20">
         {added.map((user) => (
           <div key={user._id} className="d-flex w-5 mt-3">
             <div className="border rounded-circle p-2">{user.username}</div>
@@ -91,11 +99,11 @@ const CreateGroup = () => {
       </div>
       <div className="border-bottom mt-3"></div>
 
-      <div className="d-flex flex-column mt-3 overflow-scroll">
+      <div className="d-flex flex-column mt-3 h-50 overflow-scroll">
         {users.map((user) => (
           <div key={user._id} className="d-flex justify-content-between">
             <div className="">{user.username}</div>
-            {members.includes(user._id) ? (
+            {newMembers.includes(user._id) ? (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -122,9 +130,9 @@ const CreateGroup = () => {
           </div>
         ))}
       </div>
-      <div className="d-flex justify-content-between mt-5 ">
+      <div className="d-flex justify-content-between mt-3 ">
         <input
-          className="w-100"
+          className="w-100 form-control"
           onChange={(e) => setGroupName(e.target.value)}
           placeholder="Enter Group Name"
         ></input>

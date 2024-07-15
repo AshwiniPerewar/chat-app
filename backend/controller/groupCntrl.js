@@ -3,12 +3,19 @@ const User = require('../models/User');
 const mongoose=require("mongoose")
 // create new group
 const createGroup = async (req, res) => {
-  const { groupName,members} = req.body;
+  const { groupName,admin,members} = req.body;
   try{
-  const group = new Group({ name:groupName,members});
-
-  const createdGroup = await group.save();
-  res.status(201).json(createdGroup);
+    const findGroup=await Group.findOne({name:groupName});
+    if(findGroup)
+    res.status(400).send({message:"Group already exists"});
+ else{ 
+  if(!members.includes(req.user._id))
+  members.push(req.user._id);
+  const group = new Group({ name:groupName,admin,members});
+  const re=await group.save();
+  console.log(re)
+  res.status(201).json({message:"Group Created successfully",group});
+ }
 }
 catch(err)
 {
@@ -33,11 +40,11 @@ catch(err)
 const deleteGroup = async (req, res) => {
   try{
   const group = await Group.findById(req.params.groupId);
-  if (group) {
+  if (group && group.admin==req.user._id) {
     await Group.deleteOne(group)
-    res.status(200).json({ message: 'Group removed' });
+    return res.status(200).json({ message: 'Group removed' });
   } else {
-    res.status(404).json({ message: 'Group not found' });
+    return res.status(404).json({ message: 'You have not authorized to delete this group' });
   }
 }
 catch(err)
@@ -49,8 +56,15 @@ catch(err)
 // fetching group details
 const getGroups = async (req, res) => {
   try{
-  const groups = await Group.find({}).populate('members', 'username');
-  res.status(200).json(groups);
+    const searchQuery = req.query.q;
+  const groups = await Group.aggregate([
+    {$match:{ name: { $regex: searchQuery, $options: 'i' }}},
+    {$unwind:"$members"},
+    {
+      $match:{"members":req.user._id}
+    }
+  ])
+  res.status(200).json({message:"Groups fetched successfully",groups});
 }
 catch(err)
 {
@@ -61,8 +75,8 @@ catch(err)
 // fetching group details by id
 const getGroupDetails = async (req, res) => {
   try{
-  const group = await Group.findById(req.params.groupId).populate('members', 'username');
-  res.status(200).json(group);
+  const group = await Group.findById(req.params.groupId).populate('members', 'username').populate('admin','username');
+  res.status(200).json({message:"group fetched successfully",group});
 }
 catch(err)
 {
@@ -74,14 +88,13 @@ catch(err)
 const addUserToGroup = async (req, res) => {
   const { groupId, newMembers } = req.body;
   try{  const group = await Group.findById(groupId);
-
-  if (group) {
+  if (group && group.admin.includes(req.user._id)) {
      group.members.push(...newMembers);
       await group.save();
-      res.status(200).json(group);
+      return res.status(200).json({message:"User added to group",group});
     } 
    else {
-    res.status(404).json({ message: 'Group not found' });
+    res.status(403).json({ message: 'Not Authorized' });
   } }
   catch(err)
   {
@@ -94,7 +107,7 @@ const addUserToGroup = async (req, res) => {
 const removeUserFromGroup = async (req, res) => {
   const { groupId, userId } = req.body;
   try{  const group = await Group.findById(groupId);
-  if (group) {
+  if (group && group.admin.includes(req.user._id)) {
     const user = await User.findById(userId);
     if (user) {
       // Check if the user is a member of the group
@@ -108,18 +121,69 @@ const removeUserFromGroup = async (req, res) => {
 
     // Save the updated group document
     await group.save();
-      res.status(200).json({message:"User Removed from group",group});
+      return res.status(200).json({message:"User Removed from group",group});
     } else {
       res.status(404).json({ message: 'User not found' });
     }
   } else {
-    res.status(404).json({ message: 'Group not found' });
+    return res.status(403).json({ message: 'Not Authorized' });
   } }
   catch(err)
   {
     res.status(400).json(err)
   }
 };
+
+
+//  exiting from group
+const exitFromGroup = async (req, res) => {
+  const { groupId, userId } = req.body;
+  try{  const group = await Group.findById(groupId);
+  if (group) {
+    const user = await User.findById(userId);
+    if (user) {
+      // Check if the user is a member of the group
+    const userIndex = group.members.indexOf(userId);
+    const adminIndex = group.admin.indexOf(userId);
+
+    if (userIndex === -1) {
+      return res.status(404).json({ message: 'User not a member of the group' });
+    }
+
+    if(adminIndex)
+    group.admin.splice(adminIndex,1);
+    // Remove the user ID from the memberIds array
+    group.members.splice(userIndex, 1);
+
+    // Save the updated group document
+    await group.save();
+      return res.status(200).json({message:"User Removed from group",group});
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } else {
+    return res.status(403).json({ message: 'Not Authorized' });
+  } }
+  catch(err)
+  {
+    res.status(400).json(err)
+  }
+};
+
+// Search users
+const searchGroup=async (req, res) => {
+  try {
+      const searchQuery = req.query.q;
+      const groups = await Group.find({
+          name: { $regex: searchQuery, $options: 'i' }
+      });
+
+      res.status(200).json({message:"Groups fetched succesfully",groups});
+  } catch (err) {
+      res.status(500).send('Server error');
+  }
+};
+
 
 // Search members
 const searchMember=async (req, res) => {
@@ -142,7 +206,7 @@ const searchMember=async (req, res) => {
           }
         }
       ]);
-      res.status(200).json(members);
+      res.status(200).json({message:"members list",members});
   } catch (err) {
       res.status(500).send('Server error');
   }
@@ -152,14 +216,20 @@ const searchMember=async (req, res) => {
 const changeGroupName=async(req,res)=>
 {
   try{
-  const deleted=await Group.findByIdAndUpdate(req.params.groupId,{name:req.body.name});
-  res.status(200).json(deleted)
+const group=await Group.findById(req.params.groupId)
+if(group && group.admin==req.user._id)
+{
+    const newName=await Group.findByIdAndUpdate(req.params.groupId,{name:req.body.name});
+  return res.status(200).json({message:"Group renamed successfully",newName})
   }
+  else
+  return res.status(403).json("Not Authorized")
+}
   catch(err)
   {
     res.status(400).json(err)
   }
 }
 
-module.exports = { createGroup, deleteGroup, getGroups,renameGroupName, getGroupDetails,addUserToGroup,removeUserFromGroup,searchMember, changeGroupName };
+module.exports = { createGroup, deleteGroup, getGroups,renameGroupName,searchGroup,exitFromGroup, getGroupDetails,addUserToGroup,removeUserFromGroup,searchMember, changeGroupName };
 

@@ -11,7 +11,8 @@ const sendMessage = async (req, res) => {
       content,
     });
 
-    const createdMessage = await message.save();
+    await message.save();
+    // req.io.to(group).emit('receiveMessage', message);
     res.status(201).json(createdMessage);
   } catch (err) {
     res.status(400).json(err);
@@ -25,16 +26,17 @@ const likeMessage = async (req, res) => {
     if (message) {
       {
         const likeIndex = message.likes.indexOf(req.user._id);
+        console.log(req.user)
         if (likeIndex === -1) {
           message.likes.push(req.user._id);
         } else {
           message.likes.splice(likeIndex, 1);
         }
         await message.save();
-        res.status(200).json(message);
+        return res.status(200).json(message);
       }
     } else {
-      res.status(404).json({ message: "Message not found" });
+      return res.status(404).json({ message: "Message not found" });
     }
   } catch (err) {
     res.status(400).json(err);
