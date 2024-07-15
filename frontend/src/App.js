@@ -15,7 +15,6 @@ import Protected from "./context/Protected";
 import GroupInfo from "./pages/group/GroupInfo";
 import AddMemberpage from "./pages/group/AddMemberPage";
 import RenameGroup from "./pages/group/RenameGroup";
-import Model from "./components/Model";
 import SearchMember from "./pages/group/SearchMember";
 
 const App = () => {
