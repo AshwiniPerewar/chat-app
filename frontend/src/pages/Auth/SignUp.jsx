@@ -1,9 +1,8 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { api } from '../../utils/api';
 import { Link, useNavigate } from 'react-router-dom';
-import { convert } from '../../utils/convert';
 
 const SignUp = () => {
   const [username, setUsername] = useState('');
@@ -14,7 +13,7 @@ const SignUp = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${api}/users/register`, { username:convert(username), password});
+      const res = await axios.post(`${api}/users/register`, { username, password});
       console.log(res)
     alert("User Created successfully");
     navigate("/login")

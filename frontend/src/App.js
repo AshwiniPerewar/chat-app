@@ -1,10 +1,10 @@
 import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
-import LoginPage from "./pages/Auth/LoginPage";
-import GroupListPage from "./pages/group/GroupListPage";
-import GroupChatPage from "./pages/group/GroupChatPage";
-import HomePage from "./pages/HomePage";
+import LoginPage from "./pages/Auth/LogIn";
+import GroupListPage from "./pages/group/GroupList";
+import GroupChatPage from "./pages/group/GroupChat";
+import HomePage from "./pages/Home";
 import Navbar from "./components/Navbar";
 import UserListPage from "./pages/User/UserList";
 import CreateUser from "./pages/User/CreateUser";
@@ -13,7 +13,7 @@ import CreateGroup from "./pages/group/CreateGroup";
 import EditUser from "./pages/User/EditUser";
 import Protected from "./context/Protected";
 import GroupInfo from "./pages/group/GroupInfo";
-import AddMemberpage from "./pages/group/AddMemberPage";
+import AddMemberpage from "./pages/group/AddMember";
 import RenameGroup from "./pages/group/RenameGroup";
 import SearchMember from "./pages/group/SearchMember";
 

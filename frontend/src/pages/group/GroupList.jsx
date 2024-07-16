@@ -1,14 +1,11 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { api } from "../../utils/api";
 import { headers } from "../../utils/headers";
-import { AuthContext } from "../../context/AuthContext";
 
 const GroupListPage = () => {
   const [groups, setGroups] = useState([]);
-  const [groupName, setGroupName] = useState("");
-  const {userData}=useContext(AuthContext);
   const [searchQuery, setSearchQuery] = useState("");
 
   // fetching all groups list
@@ -23,33 +20,6 @@ const GroupListPage = () => {
     fetchGroups();
   }, [searchQuery]);
 
-
-  // fetching group list
-  // const fetchGroups = async () => {
-  //   try {
-  //     const res = await axios.get(`${api}/groups`, headers);
-  //     setGroups(res.data.groups);
-  //     // setIsMember(res.data.members.some(el=>el._id===userData._id));
-  //   } catch (err) {
-  //     alert(err.response.data.message);
-  //   }
-  // };
-
-  
-  const deleteGroup = async (groupId, groupName) => {
-    try {
-      if (window.confirm(`Are you sure to delete ${groupName}?`)) {
-        const res = await axios.delete(`${api}/groups/${groupId}`, headers);
-        if (res) {
-          setGroups(groups.filter((el) => el._id != groupId));
-          alert("Group Deleted Successfully");
-        }
-      }
-    } catch (err) {
-      console.log(err)
-      alert(err);
-    }
-  };
 
   return (
     <div className="container pt-2 shadow-lg col-sm-4 mt-4 " style={{"height":"500px"}}>
@@ -76,8 +46,7 @@ const GroupListPage = () => {
      <Link to="/create-group" className="text-decoration-none">
           {" "}
         <button className="btn btn-primary w-100 mt-4">Create Group</button>
-        </Link>
-     
+        </Link> 
     </div>
   );
 };

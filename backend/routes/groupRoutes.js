@@ -1,5 +1,5 @@
 const express = require('express');
-const { createGroup, deleteGroup, getGroups,getGroupDetails,searchMember,searchGroup,exitFromGroup,renameGroupName,removeUserFromGroup, addUserToGroup } = require('../controller/groupCntrl');
+const{  getGroups,getGroupDetails,createGroup, deleteGroup,renameGroupName,addUserToGroup,removeUserFromGroup,exitFromGroup,searchGroup, searchMember }= require('../controller/groupCntrl');
 
 const groupRoutes = express.Router();
 

@@ -38,7 +38,7 @@ const SearchMember = () => {
     try {
       const grpRes = await axios.get(`${api}/groups/${groupId}`, headers);
       setGroup(grpRes.data.group)
-      setMembers(members.length==0 && [...members,userData,...grpRes.data.group.members.filter(el=>el._id!=userData._id)]);
+      setMembers([userData,...grpRes.data.group.members.filter(el=>el._id!=userData._id)]);
       setAdminList(grpRes.data.group.admin.map((el) => el._id));
     } catch (err) {
       console.log(err.response.data.message);
@@ -50,8 +50,12 @@ const SearchMember = () => {
       className="container col-sm-4 mt-4 shadow-lg p-4 "
       style={{ height: "500px" }}
     >
-      
-      <div className="d-flex flex-column mt-3 overflow-scroll h-50">
+       <input
+   className="form-control  border-success"
+   placeholder="Search Member name"
+    onChange={(e) => setSearchQuery(e.target.value)}
+  />
+      <div className="d-flex shadow flex-column mt-5 overflow-scroll h-75">
         {members.map((member) => ( //mmember list
           <div
             key={member._id}
@@ -60,7 +64,7 @@ const SearchMember = () => {
             data-toggle="modal"
             data-target="#exampleModalCenter"
           >
-            {/* model ends */}
+            
             <div className="mt-1">
               {member.username === userData.username ? "You" : member.username}
             </div>

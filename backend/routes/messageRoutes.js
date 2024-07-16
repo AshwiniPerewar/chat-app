@@ -3,8 +3,6 @@ const { sendMessage, likeMessage, getMessages } = require('../controller/msgCntr
 const { auth } = require('../middleware/authMiddleware');
 const router = express.Router();
 
-
-
 router.post('/',auth,  sendMessage);
 router.put('/:messageId/like',auth, likeMessage);
 router.get('/:groupId',auth,  getMessages);

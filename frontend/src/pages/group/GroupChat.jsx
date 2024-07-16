@@ -4,7 +4,6 @@ import { AuthContext } from "../../context/AuthContext";
 import { api } from "../../utils/api";
 import { Link, useParams } from "react-router-dom";
 import { headers } from "../../utils/headers";
-import io from "socket.io-client";
 
 const GroupChatPage = ({ match }) => {
   const [messages, setMessages] = useState([]);
@@ -12,13 +11,12 @@ const GroupChatPage = ({ match }) => {
   const groupId = useParams().groupId;
   const { userData } = useContext(AuthContext);
   const [name, setName] = useState("");
-  const socket = io("http://localhost:8080"); // Adjust the URL as needed
 
   // fetch group and messages
   useEffect(() => {
     fetchGroup();
     fetchMessages();
-  }, []);
+  });
 
   // fetching group details
   const fetchGroup = async () => {
@@ -46,8 +44,8 @@ const GroupChatPage = ({ match }) => {
     e.preventDefault();
     try {
       if (!newMessage) alert("Please enter a message text");
-      {
-        const res = await axios.post(
+      else{
+        await axios.post(
           `${api}/messages`,
           {
             group: groupId,
@@ -66,7 +64,7 @@ const GroupChatPage = ({ match }) => {
   // add message likes
   const handleLike = async (messageId) => {
     try {
-      const updatedMessage = await axios.put(
+      await axios.put(
         `${api}/messages/${messageId}/like`,
         { userId: userData._id },
         headers
@@ -82,9 +80,24 @@ const GroupChatPage = ({ match }) => {
       className="container col-sm-4 shadow-lg p-2 mt-4"
       style={{ height: "500px" }}
     >
-      <div className="d-flex  mt-2 justify-content-between border-bottom border-2 w-100">
-        <div>
-          <h2>{name}</h2>
+      <div className="d-flex   justify-content-between border-bottom border-2 w-100">
+        <div className="d-flex gap-2">
+        <Link to="/groups" className="text-black">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="28"
+            fill="currentColor"
+            class="bi bi-arrow-left mt-2"
+            viewBox="0 0 16 16"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8"
+            />
+          </svg>
+        </Link>
+          <h4 className="mt-1">{name}</h4>
         </div>
         {/* Dropdown */}
         <div class="dropdown mt-2" type="button">
@@ -105,16 +118,6 @@ const GroupChatPage = ({ match }) => {
               <Link to={`/group-info/${groupId}`} class="dropdown-item">
                 Group Info
               </Link>
-            </li>
-            <li>
-              <a class="dropdown-item" href="#">
-                Exit Group
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item" href="#">
-                Something else here
-              </a>
             </li>
           </ul>
         </div>
@@ -159,7 +162,7 @@ const GroupChatPage = ({ match }) => {
         ))}
       </div>
 
-      <div className="container d-flex w-100 mt-2 p-2 gap-3">
+      <div className="container d-flex w-100 mt-2 p-2">
         <input
           type="text"
           className="w-100 form-control px-6 shadow"
@@ -167,12 +170,12 @@ const GroupChatPage = ({ match }) => {
           placeholder="Write Message"
           onChange={(e) => setNewMessage(e.target.value)}
         />
-        <div className=" w-5 mt-1">
+        <div className=" w-5 mt-1" type="button">
           <svg
             onClick={handleSubmit}
             xmlns="http://www.w3.org/2000/svg"
-            width="28"
-            height="28"
+            width="32"
+            height="32"
             fill="currentColor"
             class="bi bi-arrow-right-circle-fill"
             viewBox="0 0 16 16"

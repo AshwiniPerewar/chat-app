@@ -13,7 +13,7 @@ const sendMessage = async (req, res) => {
 
     await message.save();
     // req.io.to(group).emit('receiveMessage', message);
-    res.status(201).json(createdMessage);
+    res.status(201).json(message);
   } catch (err) {
     res.status(400).json(err);
   }

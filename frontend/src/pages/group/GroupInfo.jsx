@@ -7,30 +7,13 @@ import { AuthContext } from "../../context/AuthContext";
 
 const EditGroup = () => {
   const [users, setUsers] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const [members, setMembers] = useState([]);
   const [adminList, setAdminList] = useState([]);
-  const [groupName, setGroupName] = useState("");
   const [group, setGroup] = useState({});
   const groupId = useParams().groupId;
   const { userData } = useContext(AuthContext);
   const navigate=useNavigate();
-  // fetching all users list
-  useEffect(() => {
-    const searchMembers = async () => {
-      try {
-        const res = await axios.get(
-          `${api}/groups/${groupId}/search-member?q=${searchQuery}`,
-          headers
-        );
-        setMembers(res.data.members);
-      } catch (err) {
-        console.log(err.response.data.message);
-      }
-    };
-    searchMembers();
-  }, [searchQuery]);
-
+  
   useEffect(() => {
     fetchUsers();
     fetchGroupInfo();
@@ -51,7 +34,7 @@ const EditGroup = () => {
     try {
       const grpRes = await axios.get(`${api}/groups/${groupId}`, headers);
       setGroup(grpRes.data.group)
-      setMembers(members.length==0 && [...members,userData,...grpRes.data.group.members.filter(el=>el._id!=userData._id)]);
+      setMembers([userData,...grpRes.data.group.members.filter(el=>el._id!=userData._id)]);
       setAdminList(grpRes.data.group.admin.map((el) => el._id));
     } catch (err) {
       console.log(err.response.data.message);
@@ -115,10 +98,25 @@ navigate("/groups")        }
       className="container col-sm-4 mt-4 shadow-lg p-4 "
       style={{ height: "500px" }}
     >
-      <div className="d-flex mt-2 justify-content-between  w-100">
-        <div className="d-flex flex-column text-align-center">
-        <div className="rounded-circle" style={{"width":"40px","height":"40px","border":"1px solid black"}}></div>
-        <h2>{group.name}</h2>
+      <div className="d-flex  mt-2 justify-content-between  w-100 ">
+      <Link to={`/group-chat/${groupId}`} className="text-black">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            fill="currentColor"
+            class="bi bi-arrow-left mt-2"
+            viewBox="0 0 16 16"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8"
+            />
+          </svg>
+        </Link>
+        <div className="d-flex flex-column ">
+        {/* <div className="rounded-circle" style={{"width":"40px","height":"40px","border":"1px solid black"}}></div> */}
+        <h4>{group.name}</h4>
         <div>Group. {members.length} members</div>
         </div>
         
@@ -178,16 +176,16 @@ navigate("/groups")        }
           to={`/add-members/${groupId}`}
           className="text-decoration-none text-black"
         >
-          <div className="d-flex color-green mt-3 w-50 gap-2">
+          <div className="d-flex mt-3 w-50 gap-2">
             {/* Add member Icon */}
             <div
-              className="border p-2 rounded-circle"
-              style={{ background: "#32b34c" }}
+              className="border px-1 mt-2 rounded-circle bg-primary"
+              
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
+                width="18"
+                height="18"
                 fill="white"
                 class="bi bi-person-plus-fill"
                 viewBox="0 0 16 16"
@@ -205,8 +203,8 @@ navigate("/groups")        }
       )}
 
 
-      <div className="d-flex flex-column mt-3 overflow-scroll h-50">
-        {members.map((member) => ( //mmember list
+      <div className="d-flex flex-column mt-2 overflow-scroll h-50">
+        {members && members.map((member) => ( //mmember list
           <div
             key={member._id}
             type="button"
@@ -244,9 +242,8 @@ navigate("/groups")        }
             </div>
             {adminList.includes(member._id) && (
               <div
-                className="mt-2 px-1 pt-1"
+                className="mt-2 px-1 pt-1 bg-primary text-white"
                 style={{
-                  background: "lightGreen",
                   fontSize: "8px",
                   height:"20px",
                   borderRadius: "5px",
@@ -261,7 +258,7 @@ navigate("/groups")        }
         ))}
       </div>
       {/* Exit Group */}
-      <div className="text-danger d-flex gap-3 mt-3" onClick={()=>exitFromGroup(userData)} type="button">
+      <div className="text-danger d-flex gap-3 mt-2" onClick={()=>exitFromGroup(userData)} type="button">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="22"

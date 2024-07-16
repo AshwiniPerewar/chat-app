@@ -13,7 +13,6 @@ const AddMemberpage = () => {
   const [newMembers, setNewMembers] = useState([]);
   const { userData } = useContext(AuthContext);
   const [groupName, setGroupName] = useState("");
-  const [group, setGroup] = useState({});
   const groupId = useParams().groupId;
 
   const navigate = useNavigate();
@@ -25,7 +24,7 @@ const AddMemberpage = () => {
           `${api}/users/search?q=${searchQuery}`,
           headers
         );
-        setUsers(res.data.users.filter((el) => el._id != userData._id));
+        setUsers(res.data.users.filter((el) => el._id !== userData._id));
       } catch (err) {
         console.log(err.response.data.message);
       }
@@ -36,13 +35,11 @@ const AddMemberpage = () => {
   // fetching group info
   useEffect(() => {
     fetchGroupInfo();
-  }, []);
-
+  });
 
   const fetchGroupInfo = async () => {
     try {
       const grpRes = await axios.get(`${api}/groups/${groupId}`, headers);
-      setGroup(grpRes.data.group);
       setGroupName(grpRes.data.group.name);
       setMembers(grpRes.data.group.members);
     } catch (err) {
@@ -52,7 +49,7 @@ const AddMemberpage = () => {
 
   // add users to added array
   const handleAdded = async (user) => {
-    if (added.some((member) => member._id == user._id))
+    if (added.some((member) => member._id === user._id))
       alert("User Already Added");
     else {
       setAdded([...added, user]);
@@ -63,8 +60,8 @@ const AddMemberpage = () => {
 
   // remove users from added array
   const handleRemove = (user) => {
-    setAdded(added.filter((el) => el._id != user._id));
-    setNewMembers(newMembers.filter((el) => el != user._id));
+    setAdded(added.filter((el) => el._id !== user._id));
+    setNewMembers(newMembers.filter((el) => el !== user._id));
   };
 
   // function to add members to group
@@ -134,15 +131,15 @@ const AddMemberpage = () => {
         {users.map((user) => (
           <div key={user._id} className="d-flex justify-content-between">
             <div className="">{user.username}</div>
-            {members.some((member) => member._id == user._id) ||
-            added.some((member) => member._id == user._id) ? (
+            {members.some((member) => member._id === user._id) ||
+            added.some((member) => member._id === user._id) ? (
               <div>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="16"
                   height="16"
                   fill={members.some((member) =>
-                    member._id == user._id ? "green" : "green"
+                    member._id === user._id ? "green" : "green"
                   )}
                   class="bi bi-check-square-fill"
                   viewBox="0 0 16 16"

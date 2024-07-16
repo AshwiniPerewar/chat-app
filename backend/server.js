@@ -13,10 +13,10 @@ app.use(cors(
 ));
 
 // connecting with frontend for deployment
-const path=require("path");
-const _dirname=path.dirname("");
-const buildpath=path.join(_dirname,"../frontend/build");
-app.use(express.static(buildpath));
+// const path=require("path");
+// const _dirname=path.dirname("");
+// const buildpath=path.join(_dirname,"../frontend/build");
+// app.use(express.static(buildpath));
 
 const userRoutes = require('./routes/userRoutes');
 const groupRoutes = require('./routes/groupRoutes');

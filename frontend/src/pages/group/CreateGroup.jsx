@@ -1,10 +1,9 @@
 import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { api } from "../../utils/api";
 import { headers } from "../../utils/headers";
 import { AuthContext } from "../../context/AuthContext";
-import { convert } from "../../utils/convert";
 
 const CreateGroup = () => {
   const [users, setUsers] = useState([]);
@@ -14,16 +13,16 @@ const CreateGroup = () => {
   const [groupName, setGroupName] = useState("");
   const navigate = useNavigate();
   const {userData}=useContext(AuthContext);
+
   // fetching all users list
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const res = await axios.get(
-          `${api}/users/search?q=${searchQuery}`,
+          `${api}/users?q=${searchQuery}`,
           headers
         );
-        console.log(res.data,userData._id)
-        setUsers(res.data.users.filter((el)=>el._id!=userData._id));
+        setUsers(res.data.users.filter((el)=>el._id!==userData._id));
       } catch (err) {
         console.log(err.response.data.message);
       }
@@ -41,19 +40,19 @@ const CreateGroup = () => {
   };
 
   const handleRemove = (user) => {
-    setAdded(added.filter((el) => el._id != user._id));
-    setNewMembers(newMembers.filter((el) => el != user._id));
+    setAdded(added.filter((el) => el._id !== user._id));
+    setNewMembers(newMembers.filter((el) => el !== user._id));
   };
 
   const createGroup = async () => {
     try{
-    if(newMembers.length==0)
+    if(newMembers.length===0)
     alert("Atleast one contact must be selected")
   else if (!groupName) alert("Please enter Group name");
     else {
       const res = await axios.post(
         `${api}/groups`,
-        { groupName:convert(groupName)
+        { groupName
           ,admin:userData._id, members:newMembers },
         headers
       );
@@ -68,8 +67,25 @@ const CreateGroup = () => {
   };
 
   return (
-    <div className="container col-sm-4 mt-5 shadow-lg" style={{"height":"470px"}}>
-      <h2 className=" text-center">Create Group</h2>
+    <div className="container col-sm-4 mt-3 pt-2 shadow-lg " style={{"height":"500px"}}>
+      <div className="d-flex gap-2">
+      <Link to="/groups" className="text-black">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            fill="currentColor"
+            class="bi bi-arrow-left mt-2"
+            viewBox="0 0 16 16"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8"
+            />
+          </svg>
+        </Link>
+      <h4 className="mt-1 text-center">Create Group</h4>
+      </div>
       <div className="d-flex justify-content-between ">
         <input
           className="w-100 form-control"
@@ -99,7 +115,7 @@ const CreateGroup = () => {
       </div>
       <div className="border-bottom mt-3"></div>
 
-      <div className="d-flex flex-column mt-3 h-50 overflow-scroll">
+      <div className="d-flex flex-column shadow p-2 mt-3 h-50 overflow-scroll">
         {users.map((user) => (
           <div key={user._id} className="d-flex justify-content-between">
             <div className="">{user.username}</div>

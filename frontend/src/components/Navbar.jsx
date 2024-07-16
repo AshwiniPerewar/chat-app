@@ -11,8 +11,9 @@ const Navbar = () => {
     logout();
   };
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark p-2">
-      <Link className="navbar-brand" to="/">
+    <nav className="navbar navbar-expand-lg navbar-dark bg-dark p-1">
+     <div  className="d-flex gap-0">
+            <Link className="navbar-brand" to="/">
         {/* Chat Icon */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -27,7 +28,8 @@ const Navbar = () => {
         {/* Chat Icon ends */}
       </Link>{" "}
       {/* Display User name */}
-      {userData && <div className=" text-white">{userData.username}</div>}
+      {userData && <div className="mt-2 mr-3 text-white">{userData.username}</div>}
+      </div>
       {/* Navbar */}
       <button
         className="navbar-toggler"

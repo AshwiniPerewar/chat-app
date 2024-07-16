@@ -19,7 +19,7 @@ const UserListPage = () => {
             `${api}/users/?q=${searchQuery}`,
             headers
           );
-          setUsers(res.data.users.filter((el)=>el._id!=userData._id));
+          setUsers([userData,...res.data.users.filter((el)=>el._id!=userData._id)]);
         } catch (err) {
           console.log(err.response.data.message);
         }
@@ -27,17 +27,7 @@ const UserListPage = () => {
       fetchUsers();
     }, [searchQuery]);
 
-  // const fetchUsers = async () => {
-  //   try {
-  //     const res = await axios.get(`${api}/users`, headers);
-  //     setUsers(users.length==0 && [...users,userData,...res.data.users.filter(user=>user._id!=userData._id)]);
-  //   } catch (err) {
-  //     alert(err);
-  //   }
-  // };
-
   
-
   return (
     <div className="container col-sm-4 mt-5 shadow-lg p-4"  style={{"height":"467px"}}>
       <h2 className="text-center">Users List</h2>

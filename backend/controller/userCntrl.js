@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
-const bcrypt =require("bcrypt")
+const bcrypt =require("bcrypt");
+const convert = require('../utils/convertName');
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.SECRET_KEY, { expiresIn: '30d' });
 };
@@ -53,7 +54,7 @@ catch(err)
 const createUser = async (req, res) => {
   const { username, password } = req.body;
   try{
-  const userExists = await User.findOne({ username });
+  const userExists = await User.findOne({ username:convert(username) });
 
   if (userExists) {
     return res.status(400).json({ message: 'User already exists' });
@@ -71,29 +72,6 @@ const createUser = async (req, res) => {
     } else {
       return res.status(400).json({ message: 'Invalid user data' });
     }
-  }
-}
-catch(err)
-{
-  res.status(400).json(err)
-}
-};
-
-// updating user by userId
-const editUser = async (req, res) => {
-  try{
-  const user = await User.findById(req.params.userId);
-  if (user) {
-    user.username = req.body.username || user.username;
-    user.password = req.body.password || user.password;
-    user.isAdmin = req.body.isAdmin !== undefined ? req.body.isAdmin : user.isAdmin;
-
-    const updatedUser = await user.save();
-    return res.status(200).json({
-     message:"User Details Updated Successfully"
-    });
-  } else {
-   return res.status(404).json({ message: 'User not found' });
   }
 }
 catch(err)
@@ -139,4 +117,4 @@ const deleteUser=async(req,res)=>{
   }
 }
 
-module.exports = {signupUser, loginUser, createUser, editUser, getUser, getUsers,deleteUser };
+module.exports = {signupUser, loginUser, createUser,  getUser, getUsers,deleteUser };

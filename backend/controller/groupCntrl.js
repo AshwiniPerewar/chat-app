@@ -1,57 +1,7 @@
 const Group = require('../models/Group');
 const User = require('../models/User');
-const mongoose=require("mongoose")
-// create new group
-const createGroup = async (req, res) => {
-  const { groupName,admin,members} = req.body;
-  try{
-    const findGroup=await Group.findOne({name:groupName});
-    if(findGroup)
-    res.status(400).send({message:"Group already exists"});
- else{ 
-  if(!members.includes(req.user._id))
-  members.push(req.user._id);
-  const group = new Group({ name:groupName,admin,members});
-  const re=await group.save();
-  console.log(re)
-  res.status(201).json({message:"Group Created successfully",group});
- }
-}
-catch(err)
-{
-  res.status(400).json(err)
-}
-};
-
-// rename  group name
-const renameGroupName = async (req, res) => {
-  const { groupName,groupId} = req.body;
-  try{
-  const group =await Group.findByIdAndUpdate(groupId,{ name:groupName});
-  res.status(201).json(group);
-}
-catch(err)
-{
-  res.status(400).json(err)
-}
-};
-
-// delete group by groupId
-const deleteGroup = async (req, res) => {
-  try{
-  const group = await Group.findById(req.params.groupId);
-  if (group && group.admin==req.user._id) {
-    await Group.deleteOne(group)
-    return res.status(200).json({ message: 'Group removed' });
-  } else {
-    return res.status(404).json({ message: 'You have not authorized to delete this group' });
-  }
-}
-catch(err)
-{
-  res.status(400).json(err)
-}
-};
+const mongoose=require("mongoose");
+const convert = require('../utils/convertName');
 
 // fetching group details
 const getGroups = async (req, res) => {
@@ -77,6 +27,59 @@ const getGroupDetails = async (req, res) => {
   try{
   const group = await Group.findById(req.params.groupId).populate('members', 'username').populate('admin','username');
   res.status(200).json({message:"group fetched successfully",group});
+}
+catch(err)
+{
+  res.status(400).json(err)
+}
+};
+
+
+// create new group
+const createGroup = async (req, res) => {
+  const { groupName,admin,members} = req.body;
+  try{
+    const findGroup=await Group.findOne({name:convert(groupName)});
+    if(findGroup)
+    res.status(400).send({message:"Group already exists"});
+ else{ 
+  if(!members.includes(req.user._id))
+  members.push(req.user._id);
+  const group = new Group({ name:groupName,admin,members});
+  const re=await group.save();
+  console.log(re)
+  res.status(201).json({message:"Group Created successfully",group});
+ }
+}
+catch(err)
+{
+  res.status(400).json(err)
+}
+};
+
+// delete group by groupId
+const deleteGroup = async (req, res) => {
+  try{
+  const group = await Group.findById(req.params.groupId);
+  if (group && group.admin==req.user._id) {
+    await Group.deleteOne(group)
+    return res.status(200).json({ message: 'Group removed' });
+  } else {
+    return res.status(404).json({ message: 'You have not authorized to delete this group' });
+  }
+}
+catch(err)
+{
+  res.status(400).json(err)
+}
+};
+
+// rename  group name
+const renameGroupName = async (req, res) => {
+  const { name,groupId} = req.body;
+  try{
+  const group =await Group.findByIdAndUpdate(groupId, {name:convert(name)});
+  res.status(201).json({message:"Group Renamed Successfully",group});
 }
 catch(err)
 {
@@ -212,24 +215,6 @@ const searchMember=async (req, res) => {
   }
 };
 
-// update groupname
-const changeGroupName=async(req,res)=>
-{
-  try{
-const group=await Group.findById(req.params.groupId)
-if(group && group.admin==req.user._id)
-{
-    const newName=await Group.findByIdAndUpdate(req.params.groupId,{name:req.body.name});
-  return res.status(200).json({message:"Group renamed successfully",newName})
-  }
-  else
-  return res.status(403).json("Not Authorized")
-}
-  catch(err)
-  {
-    res.status(400).json(err)
-  }
-}
 
-module.exports = { createGroup, deleteGroup, getGroups,renameGroupName,searchGroup,exitFromGroup, getGroupDetails,addUserToGroup,removeUserFromGroup,searchMember, changeGroupName };
+module.exports = {  getGroups,getGroupDetails,createGroup, deleteGroup,renameGroupName,addUserToGroup,removeUserFromGroup,exitFromGroup,searchGroup, searchMember };
 
