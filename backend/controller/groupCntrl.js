@@ -38,6 +38,7 @@ catch(err)
 // create new group
 const createGroup = async (req, res) => {
   const { groupName,admin,members} = req.body;
+  console.log(req.body,req.user)
   try{
     const findGroup=await Group.findOne({name:convert(groupName)});
     if(findGroup)
@@ -45,7 +46,8 @@ const createGroup = async (req, res) => {
  else{ 
   if(!members.includes(req.user._id))
   members.push(req.user._id);
-  const group = new Group({ name:groupName,admin,members});
+  let date=new Date().toLocaleDateString('en-GB');
+  const group = new Group({ name:convert(groupName),admin,created_by:req.user._id,date_of_creation:date,members});
   const re=await group.save();
   console.log(re)
   res.status(201).json({message:"Group Created successfully",group});

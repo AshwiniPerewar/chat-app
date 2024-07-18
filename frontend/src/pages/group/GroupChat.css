@@ -1,0 +1,22 @@
+.modal.fade .modal-dialog {
+    transition: transform 0.3s ease-out;
+    transform: translateY(100%);
+  }
+  
+  .modal.show .modal-dialog {
+    transform: translateY(0);
+  }
+  
+  .modal-dialog {
+    position: fixed;
+    bottom: 0;
+    margin: auto;
+    left: 0;
+    right: 0;
+    width: 100%; /* Adjust the width as needed */
+  }
+
+  .custom-modal-height {
+    height: 60%; /* Adjust the height as needed */
+  }
+  

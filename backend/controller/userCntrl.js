@@ -2,6 +2,8 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt =require("bcrypt");
 const convert = require('../utils/convertName');
+
+// Generating token
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.SECRET_KEY, { expiresIn: '30d' });
 };
@@ -112,7 +114,7 @@ const deleteUser=async(req,res)=>{
     const userDeleted=await User.findByIdAndDelete(req.params.userId);
     res.status(200).json(userDeleted)
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
 
   }
 }

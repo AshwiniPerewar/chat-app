@@ -1,22 +1,24 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useRef, useState, useContext } from "react";
 import axios from "axios";
 import { AuthContext } from "../../context/AuthContext";
 import { api } from "../../utils/api";
 import { Link, useParams } from "react-router-dom";
 import { headers } from "../../utils/headers";
-
-const GroupChatPage = ({ match }) => {
+import "./GroupChat.css"
+const GroupChatPage = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const groupId = useParams().groupId;
   const { userData } = useContext(AuthContext);
   const [name, setName] = useState("");
-
+  const chatContainerRef = useRef(null); // Create a reference
+  const [isUserAtBottom, setIsUserAtBottom] = useState(true); // Track if user is at the bottom
+const[likedUsers,setLikedUsers]=useState([]);
   // fetch group and messages
   useEffect(() => {
     fetchGroup();
     fetchMessages();
-  });
+  },[]);
 
   // fetching group details
   const fetchGroup = async () => {
@@ -32,10 +34,23 @@ const GroupChatPage = ({ match }) => {
   const fetchMessages = async () => {
     try {
       const res = await axios.get(`${api}/messages/${groupId}`, headers);
-      setMessages(res.data);
+      setMessages(res.data.messages);
+      console.log(res.data.messages)
     } catch (err) {
       console.log(err);
       // alert(err.message);
+    }
+  };
+
+  useEffect(() => {
+    scrollToBottom(); // Scroll to bottom whenever messages are fetched
+  }, [messages]);
+
+  // Scroll to bottom function
+  const scrollToBottom = () => {
+    if (chatContainerRef.current && isUserAtBottom) {
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
     }
   };
 
@@ -44,7 +59,7 @@ const GroupChatPage = ({ match }) => {
     e.preventDefault();
     try {
       if (!newMessage) alert("Please enter a message text");
-      else{
+      else {
         await axios.post(
           `${api}/messages`,
           {
@@ -53,6 +68,7 @@ const GroupChatPage = ({ match }) => {
           },
           headers
         );
+        setIsUserAtBottom(true);
         fetchMessages();
         setNewMessage("");
       }
@@ -75,28 +91,39 @@ const GroupChatPage = ({ match }) => {
     }
   };
 
+
+  // fetch liked users
+  const fetchLikedUsers = async (messageId) => {
+    try {
+      const res = await axios.get(`${api}/messages/${messageId}/likes`, headers);
+      setLikedUsers([userData,...res.data.likes.filter(el=>el._id!==userData._id)]);
+    } catch (err) {
+      console.log(err.response.data.message);
+    }
+  };
+
   return (
     <div
-      className="container col-sm-4 shadow-lg p-2 mt-4"
+      className="container col-sm-6 shadow-lg p-3 mt-4"
       style={{ height: "500px" }}
     >
       <div className="d-flex   justify-content-between border-bottom border-2 w-100">
         <div className="d-flex gap-2">
-        <Link to="/groups" className="text-black">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="28"
-            fill="currentColor"
-            class="bi bi-arrow-left mt-2"
-            viewBox="0 0 16 16"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8"
-            />
-          </svg>
-        </Link>
+          <Link to="/groups" className="text-black">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="28"
+              fill="currentColor"
+              class="bi bi-arrow-left mt-2"
+              viewBox="0 0 16 16"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8"
+              />
+            </svg>
+          </Link>
           <h4 className="mt-1">{name}</h4>
         </div>
         {/* Dropdown */}
@@ -123,27 +150,42 @@ const GroupChatPage = ({ match }) => {
         </div>
       </div>
 
-      <div className="overflow-scroll px-2 h-75 d-flex flex-column">
+      <div
+        className="overflow-auto mx-2 h-75 d-flex mt-2 p-2 shadow flex-column"
+        ref={chatContainerRef} // Attach the reference
+        onScroll={() => setIsUserAtBottom(false)}
+      >
+        {/* displaying messages */}
         {messages.map((message) => (
           <div
             key={message._id}
-            className={`w-75 p-2 mt-2 lh-1 ${
+            className={`p-2 ${
               userData.username === message.sender
-                ? "align-self-end bg-warning-subtle"
-                : "align-self-start bg-light"
+                ? "align-self-end"
+                : "align-self-start"
             }`}
+            style={{ maxWidth: "75%", width: "auto" }} // Set maxWidth and width
           >
-            {userData.username !== message.sender && (
-              <p className="text-primary lh-1">{message.sender}</p>
-            )}
-            <p className="lh-1">{message.content}</p>
             <div
-              className={`w-4 lh-1 ${
+              className={`border rounded p-2 my-1 lh-1 ${
+                userData.username === message.sender && "bg-warning-subtle"
+              }`}
+            >
+              {/* show the username if the sender is not the user itself */}
+              {userData.username !== message.sender && (
+                <p className="text-primary lh-1">{message.sender}</p>
+              )}
+              <p>{message.content}</p>
+            </div>
+            <div
+              className={`w-4 lh-1 d-flex bg-white ${
                 message.likes.includes(userData.username) && "text-danger"
               }`}
-              onClick={() => handleLike(message._id)}
+              type="button"
             >
+              {/* like icon */}
               <svg
+                onClick={() => handleLike(message._id)}
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
                 height="16"
@@ -156,7 +198,14 @@ const GroupChatPage = ({ match }) => {
                   d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314"
                 />
               </svg>
+               <div 
+              type="button"
+              data-toggle="modal" data-target="#exampleModal"
+              onClick={() => fetchLikedUsers(message._id)} // Fetch liked users on click
+            >
               {message.likes.length}
+            </div>
+                
             </div>
           </div>
         ))}
@@ -184,6 +233,34 @@ const GroupChatPage = ({ match }) => {
           </svg>
         </div>
       </div>
+
+     {/* Modal for displaying liked users */}
+     <div
+        className="modal fade"
+        id="exampleModal"
+        tabIndex="-1"
+        role="dialog"
+        aria-labelledby="exampleModalLabel"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog " role="document" style={{"width":"60%"}} >
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title" id="exampleModalLabel">
+                Likes {likedUsers.length}
+              </h5>
+            </div>
+            <div className="modal-body">
+              {likedUsers.map((user) => (
+                <div key={user._id} className="mt-1">
+                  {userData._id === user._id ? "You" : user.username}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 };

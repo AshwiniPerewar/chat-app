@@ -6,28 +6,18 @@ import { headers } from "../../utils/headers";
 import { AuthContext } from "../../context/AuthContext";
 
 const EditGroup = () => {
-  const [users, setUsers] = useState([]);
   const [members, setMembers] = useState([]);
   const [adminList, setAdminList] = useState([]);
   const [group, setGroup] = useState({});
   const groupId = useParams().groupId;
+  const [isUserAdmin,setIsUserAdmin]=useState(false);
   const { userData } = useContext(AuthContext);
   const navigate=useNavigate();
   
   useEffect(() => {
-    fetchUsers();
     fetchGroupInfo();
   }, []);
 
-  const fetchUsers = async () => {
-    try {
-      const userRes = await axios.get(`${api}/users`, headers);
-      console.log(userRes.data);
-      setUsers(userRes.data.users);
-    } catch (err) {
-      console.log(err.response.data.message);
-    }
-  };
 
   // fethcing group info
   const fetchGroupInfo = async () => {
@@ -36,6 +26,7 @@ const EditGroup = () => {
       setGroup(grpRes.data.group)
       setMembers([userData,...grpRes.data.group.members.filter(el=>el._id!=userData._id)]);
       setAdminList(grpRes.data.group.admin.map((el) => el._id));
+      setIsUserAdmin(grpRes.data.group.admin.some(el=>el._id==userData._id))
     } catch (err) {
       console.log(err.response.data.message);
     }
@@ -114,7 +105,7 @@ navigate("/groups")        }
             />
           </svg>
         </Link>
-        <div className="d-flex flex-column ">
+        <div className="d-flex flex-column text-center">
         {/* <div className="rounded-circle" style={{"width":"40px","height":"40px","border":"1px solid black"}}></div> */}
         <h4>{group.name}</h4>
         <div>Group. {members.length} members</div>
@@ -135,11 +126,12 @@ navigate("/groups")        }
             </svg>{" "}
           </div>
           <ul class="dropdown-menu">
+            {isUserAdmin &&
             <li>
               <Link to={`/add-members/${groupId}`} class="dropdown-item">
                 Add Members{" "}
               </Link>
-            </li>
+            </li>}
             <li>
               <Link to={`/rename-group/${groupId}`} class="dropdown-item">
                 Change Group Name{" "}
@@ -151,7 +143,7 @@ navigate("/groups")        }
       {/* Dropdown ended */}
       {/* ----------- */}
       {/* search member */}
-      <div className="d-flex justify-content-between
+      <div className="d-flex justify-content-between mt-2
       ">
        <div>{members.length} members</div>
        <Link to={`/search-member/${groupId}`}>
@@ -160,7 +152,7 @@ navigate("/groups")        }
             xmlns="http://www.w3.org/2000/svg"
             width="16"
             height="16"
-            fill="currentColor"
+            fill="black"
             class="bi bi-search"
             viewBox="0 0 16 16"
             type="button"
@@ -171,7 +163,7 @@ navigate("/groups")        }
         </div>
 
         {/* Link to add members page */}
-      {adminList.includes(userData._id) && (
+      {isUserAdmin && (
         <Link
           to={`/add-members/${groupId}`}
           className="text-decoration-none text-black"
@@ -203,17 +195,17 @@ navigate("/groups")        }
       )}
 
 
-      <div className="d-flex flex-column mt-2 overflow-scroll h-50">
+      <div className="d-flex flex-column mt-2 h-50 overflow-scroll " style={{"height":"300px"}}>
         {members && members.map((member) => ( //mmember list
           <div
             key={member._id}
             type="button"
-            className="d-flex justify-content-between"
+            className="d-flex justify-content-between p-1"
             data-toggle="modal"
             data-target="#exampleModalCenter"
           >
             {" "}
-            {adminList.includes(userData._id) &&
+            {isUserAdmin &&
             <div
               class="modal fade "
               id="exampleModalCenter"
@@ -228,9 +220,7 @@ navigate("/groups")        }
               >
                 <div class="modal-content">
                   <div class="modal-body">
-                    {adminList.includes(userData._id) && 
-                      <div>Remove {member.username}</div>
-                    }
+                   <div>Remove {member.username}</div>
                   </div>
                 </div>
               </div>

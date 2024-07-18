@@ -1,11 +1,10 @@
 import React, { useContext } from "react";
-import { Link, useHistory, useLocation, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const Navbar = () => {
   const { isAuth, userData, logout } = useContext(AuthContext);
-  const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();

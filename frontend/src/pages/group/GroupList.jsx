@@ -31,7 +31,7 @@ const GroupListPage = () => {
           placeholder="search Group Name"
         />
       {groups && (
-        <div className=" mt-2 shadow p-3 overflow-scroll h-50">
+        <div className=" mt-2 shadow p-4 overflow-scroll h-50">
           {groups.map((group) =>  (
             <div key={group._id} className="list-group-item mt-2">
               <div className="d-flex justify-content-between">

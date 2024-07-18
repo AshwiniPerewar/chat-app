@@ -12,8 +12,7 @@ const sendMessage = async (req, res) => {
     });
 
     await message.save();
-    // req.io.to(group).emit('receiveMessage', message);
-    res.status(201).json(message);
+    res.status(201).json({message:"Message sent Successfully",message});
   } catch (err) {
     res.status(400).json(err);
   }
@@ -33,7 +32,7 @@ const likeMessage = async (req, res) => {
           message.likes.splice(likeIndex, 1);
         }
         await message.save();
-        return res.status(200).json(message);
+        return res.status(200).json({message:"Message liked Successfully",message});
       }
     } else {
       return res.status(404).json({ message: "Message not found" });
@@ -73,10 +72,32 @@ const getMessages = async (req, res) => {
         },
       },
     ]);
-    res.status(200).json(messages);
+    res.status(200).json({message:"Messages fetched Successfully",messages});
   } catch (err) {
     res.status(400).json(err);
   }
 };
 
-module.exports = { sendMessage, likeMessage, getMessages };
+
+const getLikedUsers=async(req,res)=>{
+  try{
+    const {likes}=await Message.findById(req.params.messageId).select("likes -_id").populate("likes","username");
+    // aggregate([
+    //   {$match:{_id:new mongoose.Types.ObjectId(req.params.messageId)}},
+    //   {$unwind:"$likes"},
+    //   {$project:{
+    //     likes:"$likes"
+    //   }}
+    // ])
+console.log(likes)
+res.status(200).json({message:"Message likes fetched Successfully",likes})
+  }
+  catch(err)
+  {
+    res.status(400).json(err)
+  }
+}
+
+
+
+module.exports = { sendMessage, likeMessage, getMessages,getLikedUsers };
